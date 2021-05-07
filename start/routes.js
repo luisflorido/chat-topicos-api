@@ -23,4 +23,5 @@ Route.post('/register', 'UserController.register')
 Route.get('/user/:userName', 'UserController.findBy').middleware(['auth'])
 
 Route.get('/chats', 'ChatController.index').middleware(['auth', 'pagination'])
+Route.get('/chats/:id', 'ChatController.listMessages').middleware(['auth', 'pagination'])
 Route.post('/chats/:id', 'ChatController.store').middleware(['auth'])

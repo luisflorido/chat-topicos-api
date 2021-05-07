@@ -11,6 +11,10 @@ class Chat extends Model {
     to() {
         return this.belongsTo('App/Models/User', 'to_user_id', 'id')
     }
+
+    messages() {
+        return this.hasMany('App/Models/Message')
+    }
 }
 
 module.exports = Chat

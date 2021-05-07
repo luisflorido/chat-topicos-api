@@ -6,6 +6,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 const Chat = use('App/Models/Chat')
 const User = use('App/Models/User')
+const Message = use('App/Models/Message')
 /**
  * Resourceful controller for interacting with chats
  */
@@ -28,9 +29,38 @@ class ChatController {
       .orWhere('to_user_id', user.id)
       .with('to')
       .with('from')
+      .with('messages', builder => {
+        builder.orderBy("messages.created_at", "desc").limit(1);
+      })
       .paginate(page, size)
 
     return response.ok(chats)
+  }
+
+  async listMessages ({ request, response, view, auth }) {
+    const { page, size } = request.pagination;
+    const { user } = auth;
+    const { id } = request.params;
+
+    const findChat = await Chat.query()
+      .where(builder => {
+        builder.where('from_user_id', user.id)
+          .orWhere('to_user_id', user.id)
+      })
+      .where('id', id)
+      .first()
+    
+
+    if (!findChat) {
+      return response.notFound({ message: "Chat não encontrado." })
+    }
+
+    const messages = await Message.query()
+      .where('chat_id', id)
+      .orderBy('created_at', 'desc')
+      .paginate(page, size)
+
+    return response.ok(messages)
   }
 
   /**
