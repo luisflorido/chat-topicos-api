@@ -3,10 +3,27 @@ const User = use('App/Models/User')
 
 class UserController {
     async login({request, response, auth}) {
-        const { username, password } = request.all();
-        const token = await auth.withRefreshToken().attempt(username, password);
-
-        return response.ok(token)
+        try {
+            const { username, password, refresh_token } = request.all();
+            if (refresh_token) {
+                const token = await auth
+                    .newRefreshToken()
+                    .generateForRefreshToken(refresh_token);
+    
+                const { uid } = await auth
+                    .authenticator("jwt")
+                    ._verifyToken(token.token);
+    
+                const user = await User.find(uid);
+                return {...token, user}
+            }
+            const token = await auth.withRefreshToken().attempt(username, password);
+    
+            const user = await User.findBy("username", username);
+            return response.ok({...token, user})
+        } catch (e) {
+            return response.internalServerError({ message: "Erro ao efetuar login."})
+        }
     }
 
     async findBy({request, response, auth}) {
