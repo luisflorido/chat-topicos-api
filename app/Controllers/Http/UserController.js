@@ -37,6 +37,15 @@ class UserController {
         return response.ok(findUser)
     }
 
+    async update({request, response, auth}) {
+        const { user } = auth;
+
+        user.merge(request.all());
+        await user.save()
+
+        return response.ok(user)
+    }
+
     async register({request, response}) {
         const { username, name, password } = request.all();
         const findUser = await User.findBy("username", username)

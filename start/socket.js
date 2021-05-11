@@ -14,6 +14,4 @@
 */
 const Ws = use('Ws')
 
-console.log('AAAA')
-
 Ws.channel('chat:*', 'ChatController')
