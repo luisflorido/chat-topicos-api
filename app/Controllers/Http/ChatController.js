@@ -72,27 +72,34 @@ class ChatController {
    * @param {Response} ctx.response
    */
   async store ({ request, response, auth }) {
-    const { user } = auth
-    const { id } = request.params;
+    try {
+      const { user } = auth
+      const { id } = request.params;
+  
+      const findUserTo = await User.findBy("username", id);
+      if (!findUserTo) {
+        return response.badRequest({ message: "Usuário não encontrado." })
+      }
+  
+      const findChat = await Chat.query()
+        .where('from_user_id', user.id)
+        .where('to_user_id', user.id)
+        .first();
 
-    const findUserTo = await User.find(id);
-    if (!findUserTo) {
-      return response.badRequest({ message: "Usuário não encontrado." })
+      if (findChat) {
+        return response.badRequest({ message: "Já existe um chat com este usuário" })
+      }
+
+      const chat = await Chat.create({
+        from_user_id: user.id,
+        to_user_id: findUserTo.id
+      })
+  
+      return response.ok(chat);
+    } catch (e) {
+      console.log(e)
+      return response.internalServerError({message: "Erro interno"});
     }
-
-    const findChat = await Chat.query()
-      .where('from_user_id', user.id)
-      .where('to_user_id', user.id)
-      .first();
-    if (findChat) {
-      return response.badRequest({ message: "Já existe um chat com este usuário" })
-    }
-    const chat = await Chat.create({
-      from_user_id: user.id,
-      to_user_id: +id
-    })
-
-    return response.ok(chat);
   }
 
   /**
